@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Examen de Admisión - Práctica Intensiva</title>
+    <!-- Fuentes e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --primary-dark: #357ABD;
+            --secondary: #50E3C2;
+            --bg-body: #F0F4F8;
+            --bg-card: #FFFFFF;
+            --text-main: #2C3E50;
+            --text-muted: #7F8C8D;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --warning: #F1C40F;
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #E0EAFC 0%, #CFDEF3 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Pantalla de Bienvenida --- */
+        .welcome-screen {
+            padding: 50px 40px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            flex-grow: 1;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .welcome-screen h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+
+        .welcome-screen p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .instructions {
+            background: #F8F9FA;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border-left: 5px solid var(--primary);
+            text-align: left;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .instructions ul {
+            list-style: none;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            color: #555;
+        }
+
+        .instructions li i {
+            color: var(--primary);
+            margin-right: 10px;
+        }
+
+        .btn-start {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+            transition: var(--transition);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.6);
+        }
+
+        /* --- Pantalla del Examen --- */
+        .quiz-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            flex-grow: 1;
+            animation: slideIn 0.5s ease;
+        }
+
+        .quiz-header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E1E8ED;
+        }
+
+        .quiz-info {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .timer-box {
+            background: #F0F4F8;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+
+        .timer-box.warning {
+            background: #FDEDEC;
+            color: var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #E1E8ED;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .quiz-content {
+            padding: 30px 40px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .image-container {
+            text-align: center;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            background: #F8F9FA;
+            border: 2px solid #E1E8ED;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-item:hover {
+            border-color: var(--primary);
+            background: #F0F7FF;
+            transform: translateX(5px);
+        }
+
+        .option-item.selected {
+            border-color: var(--primary);
+            background: #E6F0FA;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.15);
+        }
+
+        .option-letter {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 35px;
+            height: 35px;
+            background: white;
+            border: 2px solid #E1E8ED;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .option-item.selected .option-letter {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .quiz-footer {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #E1E8ED;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-next:disabled {
+            background: #BDC3C7;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-next.finish {
+            background: var(--success);
+        }
+        .btn-next.finish:hover {
+            background: #27AE60;
+        }
+
+        /* --- Pantalla de Resultados --- */
+        .results-screen {
+            display: none;
+            padding: 40px;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0%, #E1E8ED 0%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .score-text {
+            position: relative;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .score-text span {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .results-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .review-section {
+            background: #F8F9FA;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .review-item {
+            padding: 15px;
+            border-bottom: 1px solid #E1E8ED;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-q {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .review-ans {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .review-ans.correct { color: var(--success); }
+        .review-ans.incorrect { color: var(--danger); }
+        
+        .btn-restart {
+            background: var(--text-main);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-restart:hover {
+            background: #1A252F;
+        }
+
+        /* --- Animaciones --- */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .quiz-content { padding: 20px; }
+            .quiz-header { padding: 15px 20px; flex-direction: column; gap: 10px; }
+            .option-item { padding: 12px; }
+            .results-screen { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- PANTALLA DE BIENVENIDA -->
+    <div class="welcome-screen" id="welcome-screen">
+        <h1><i class="fas fa-graduation-cap"></i> Simulador de Admisión. Hecha por Jordycito</h1>
+        <p>Prepárate para tu examen con este entorno de práctica realista. Pon a prueba tus conocimientos en razonamiento numérico, lógico y verbal.</p>
+        
+        <div class="instructions">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">Instrucciones:</h3>
+            <ul>
+                <li><i class="fas fa-clock"></i> Tiempo límite: <strong>45 minutos</strong>.</li>
+                <li><i class="fas fa-list-ol"></i> Total de preguntas: <strong>45</strong>.</li>
+                <li><i class="fas fa-mouse-pointer"></i> Selecciona una opción y presiona <strong>"Siguiente"</strong>.</li>
+                <li><i class="fas fa-ban"></i> No puedes regresar a preguntas anteriores.</li>
+                <li><i class="fas fa-chart-line"></i> Al finalizar, recibirás un informe detallado.</li>
+            </ul>
+        </div>
+        
+        <button class="btn-start" onclick="startExam()">Comenzar Examen <i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- PANTALLA DEL EXAMEN -->
+    <div class="quiz-screen" id="quiz-screen">
+        <div class="quiz-header">
+            <div class="quiz-info" id="question-counter">Pregunta 1 de 45</div>
+            <div class="timer-box" id="timer-display">
+                <i class="fas fa-hourglass-half"></i> <span id="time-text">45:00</span>
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="quiz-content">
+            <div class="question-text" id="question-text"></div>
+            <div class="image-container" id="image-container">
+                <img id="question-image" src="" alt="Figura">
+            </div>
+            <div class="options-list" id="options-list"></div>
+        </div>
+
+        <div class="quiz-footer">
+            <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>
+                Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE RESULTADOS -->
+    <div class="results-screen" id="results-screen">
+        <div class="results-header">
+            <div class="score-circle" id="score-circle">
+                <div class="score-text" id="score-text">0<span>/45</span></div>
+            </div>
+            <h2>Resultados del Examen</h2>
+            <p class="results-message" id="results-message"></p>
+        </div>
+        
+        <div class="review-section" id="review-section">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">Revisión de Respuestas</h3>
+            <!-- Se genera dinámicamente -->
+        </div>
+
+        <button class="btn-restart" onclick="location.reload()"><i class="fas fa-redo"></i> Volver a Intentar</button>
+    </div>
+
+</div>
+
+<script>
+    // Base de datos de preguntas (Originales + Nuevas)
+    const questions = [
+        // --- PREGUNTAS DEL DOCUMENTO ORIGINAL ---
+        { q: "1. La profesora ha puesto a sus alumnos una sucesión alfanumérica. ¿Puedes hallar el valor que continua? 3A, 6C, 12F, 24J, ____", options: ["a) 36 O", "b) 48 Ñ", "c) 36 P", "d) 48 O"], correct: 3, img: null },
+        { q: "2. Complete la siguiente serie numérica: 1, 1, 2, 3, 5, __, 13, 21, 34", options: ["a) 10", "b) 8", "c) 7", "d) 9"], correct: 1, img: null },
+        { q: "3. Si un pantalón cuesta $35 dólares americanos y tiene un descuento del 12%. ¿Cuál es el costo final del pantalón?", options: ["a) 32,08", "b) 30,88", "c) 30,80", "d) 31,25"], correct: 2, img: null },
+        { q: "4. Identifique los elementos que faltan en la siguiente sucesión: 5, 8, 13, ___, 34, ___, 89.", options: ["a) 26,55", "b) 21,55", "c) 21,60", "d) 25,60"], correct: 1, img: null },
+        { q: "5. Calcular la longitud de los lados de un triángulo equilátero si se conoce que su perímetro es igual a la longitud de una circunferencia de 24 de diámetro.", options: ["a) 8π", "b) 4π", "c) 12π", "d) 24π"], correct: 0, img: null },
+        { q: "6. Se desea adornar el perímetro de un objeto que tiene forma de triángulo isósceles cuya base mide 10 cm y su alma (lado) mide 11 cm. ¿Qué cantidad de cinta se debe comprar?", options: ["a) 32,00 cm", "b) 22.08 cm", "c) 39.73 cm", "d) 34.16 cm"], correct: 0, img: null },
+        { q: "7. Hallar el número que cumple la siguiente condición: El doble del número más 5 es 30:", options: ["a) 25", "b) 25/2", "c) 10", "d) 20/4"], correct: 1, img: null },
+        { q: "8. En un investigador se ha determinado que, de 125 autos analizados, 30 consumen más de 60 litros de gasolina cada 100 km, mientras que la cantidad restante de autos consumen hasta 60 litros de gasolina como máximo. ¿Qué porcentaje de autos consumen menos de 60 litros de gasolina cada 100 km?", options: ["a) 29%", "b) 79%", "c) 76%", "d) 21%"], correct: 2, img: null },
+        { q: "9. Complete la sucesión alfanumérica. 1z, 4y, 8x, 32w, 64v, ____", options: ["a) 256u", "b) 128u", "c) 128t", "d) 256t"], correct: 0, img: null },
+        { q: "10. Matías va al bar su colegio por hamburguesas y salchipapas, cada hamburguesa cuesta $1,25 y cada salchipapas $0,75. Si lleva quince productos en total por $15.75. ¿Cuántas hamburguesas y salchipapas compró?", options: ["a) 10 hamburguesas y 5 salchipapas", "b) 9 hamburguesas y 6 salchipapas", "c) 6 hamburguesas y 9 salchipapas", "d) 5 hamburguesas y 10 salchipapas"], correct: 1, img: null },
+        { q: "11. Un terreno fue dividido, como se muestra en la figura, encontrar el perímetro y área del terreno:", options: ["a) 22 m y 40 m²", "b) 34 m y 62 m²", "c) 26 m y 34 m²", "d) 30 m y 50 m²"], correct: 2, img: "https://placehold.co/400x200/EFEFEF/333333?text=Figura+del+Terreno" },
+        { q: "12. Si dentro de 8 años Adrián tiene el triple de la edad que tiene ahora, ¿entonces qué edad tiene actualmente y dentro de 8?", options: ["a) Actualmente 8 años y dentro de 8 años tendrá 16 años", "b) Actualmente 6 años y dentro de 8 años tendrá 14 años", "c) Actualmente 4 años y dentro de 8 años tendrá 12 años", "d) Actualmente 2 años y dentro de 8 años tendrá 10 años"], correct: 2, img: null },
+        { q: "13. Andrés, José, María y Juan entran en una habitación y se saludan. ¿Cuántos saludos han intercambiado entre sí?", options: ["a) Han intercambiado 6 saludos", "b) Han intercambiados 8 saludos", "c) Han intercambiado 4 saludos", "d) Han intercambiado 10 saludos"], correct: 0, img: null },
+        { q: "14. Calcule el área de la parte sombreada, si el radio del círculo mayor mide 6 cm y el radio de los círculos pequeños miden 2 cm. El resultado expresado en términos de π es:", options: ["a) 20 π cm²", "b) 36 π cm²", "c) 16 π cm²", "d) 28 π cm²"], correct: 0, img: "https://placehold.co/300x300/EFEFEF/333333?text=Figura+de+Círculos" },
+        { q: "15. Un atleta recorre 100 metros en 15 segundos. ¿Qué distancia recorre en 420 segundos, si mantiene su velocidad constante?", options: ["a) 4.500", "b) 2.800", "c) 3.750", "d) 2.350"], correct: 1, img: null },
+        { q: "16. Se ha recibido una preforma de compra de 100 computadores cotizadas en $49 755.55. La empresa esta planteando comprar 180 computadores. ¿Cuál sería el precio a pagar, bajo la misma cotización?", options: ["a) $89.559.99", "b) $89.559.99", "c) $85.559.99", "d) $85.999.99"], correct: 0, img: null },
+        { q: "17. En un complejo infantil se encuentra 40 canicas de colores, 8 niños escogen canicas de color rojo, 12 niños escoger el color blanco, 6 niños escogen canicas de color azul, 9 niños escoger canicas de color amarillo, en el complejo solo quedan canicas doradas. ¿Cuál es la probabilidad de elegir a un niño que escogió una canica de color dorado?", options: ["a) 1/5", "b) 9/40", "c) 3/10", "d) 1/8"], correct: 3, img: null },
+        { q: "18. Si en una clase de 40 alumnos se quiere formar grupos de 5 sin que importe el orden en que se elige a los estudiantes, ¿cuántas variantes de grupos podrías conformarse?", options: ["a) 658080", "b) 658088", "c) 658088", "d) 658808", "e) 658008"], correct: 4, img: null },
+        { q: "19. Una comunidad amazónica está conformada por 30 hombres y 25 mujeres, desean formar grupos de representantes que este compuesto por 2 hombres y 1 mujer. ¿De cuantas formas puede formarse los grupos?", options: ["a) 89100", "b) 10800", "c) 98000", "d) 10875"], correct: 3, img: null },
+        { q: "20. Complete la siguiente serie numérica: 1, 1, 2, 3, 5, __, 13, 21, 34", options: ["a) 10", "b) 8", "c) 7", "d) 9"], correct: 1, img: null },
+        { q: "21. En un tren viajan 1200 turistas, en la primera parada se quedan el 30% de turistas y en la segunda parada se bajan el 10% del total de turistas que se quedaron en el tren en la primera parada, en la tercera parada no se baja nadie, pero sube el 5% del total de turistas que iniciaron el viaje en el tren. ¿Qué porcentaje de viajeros están dentro del tren hasta su última parada?", options: ["a) 68%", "b) 72%", "c) 60%", "d) 65%"], correct: 0, img: null },
+        { q: "22. María hace un pastel de chocolate, por cada 100 gramos de harina añade 50 gramos de chocolate y una naranja. Si usa 310 gramos de chocolate. ¿Qué cantidad de harina necesita para el pastel?", options: ["a) 580", "b) 300", "c) 450", "d) 620"], correct: 3, img: null },
+        { q: "23. Calcular el perímetro de la siguiente figura (Trapecio rectángulo):", options: ["a) 32", "b) 46", "c) 36", "d) 26"], correct: 2, img: "https://placehold.co/400x200/EFEFEF/333333?text=Figura+Trapecio" },
+        { q: "24. De un grupo de 40 estudiantes se desea formar grupos de 5 personas. Además, en una urna hay bolas negras: 2, blancas=3, rojas=2, verdes=5. ¿Cuál es la probabilidad de que salga una bola roja?", options: ["a) 1/6", "b) 1/4", "c) 1/3", "d) 2/5"], correct: 0, img: null },
+        { q: "25. El término que continua en la secuencia: 1024, ___, ___, -16, 4, -1", options: ["a) 256, 64", "b) -256, 64", "c) 256, -64", "d) -256, -64"], correct: 1, img: null },
+        { q: "26. Hallar el siguiente término: 2, 5, 9, 14, 20, __", options: ["a) 24", "b) 26", "c) 27", "d) 28"], correct: 2, img: null },
+        { q: "27. Hallar el área de la siguiente figura (Rectángulo de 40x60 con triángulo adjunto):", options: ["a) 2400", "b) 3000", "c) 3600", "d) 4800"], correct: 0, img: "https://placehold.co/400x200/EFEFEF/333333?text=Figura+Área+Rectángulo" },
+        { q: "28. Existen bolas verdes = 8, Rojas = 4, Blancas = 4, calcular la probabilidad de que salga verde.", options: ["a) 1/2", "b) 1/4", "c) 1/8", "d) 3/4"], correct: 0, img: null },
+        { q: "29. Hallar el perímetro de la siguiente figura (Rectángulo 6x8 con triángulo):", options: ["a) 24", "b) 28", "c) 30", "d) 32"], correct: 0, img: "https://placehold.co/400x200/EFEFEF/333333?text=Figura+Perímetro" },
+        { q: "30. Identifique la consecuencia lógica a partir de las dos siguientes premisas: • Todos los seres humanos son mortales • Sócrates es un ser humano", options: ["a) Sócrates es un ser vivo", "b) Sócrates es Homo sapiens", "c) Sócrates es mortal", "d) Sócrates es un ser social"], correct: 2, img: null },
+
+        // --- NUEVAS PREGUNTAS AÑADIDAS ---
+        { q: "31. Complete la serie: 2, 4, 8, 16, __, 64", options: ["a) 24", "b) 32", "c) 48", "d) 20"], correct: 1, img: null },
+        { q: "32. ¿Cuál es el 15% de 200?", options: ["a) 15", "b) 20", "c) 30", "d) 35"], correct: 2, img: null },
+        { q: "33. Si 3x - 5 = 10, ¿cuál es el valor de x?", options: ["a) 3", "b) 5", "c) 15", "d) 5/3"], correct: 1, img: null },
+        { q: "34. Calcule el área de un triángulo cuya base mide 10 cm y su altura mide 5 cm.", options: ["a) 50 cm²", "b) 15 cm²", "c) 25 cm²", "d) 30 cm²"], correct: 2, img: null },
+        { q: "35. ¿Cuál es la probabilidad de obtener un número par al lanzar un dado de 6 caras?", options: ["a) 1/6", "b) 1/3", "c) 1/2", "d) 2/3"], correct: 2, img: null },
+        { q: "36. Complete la serie: 3, 6, 12, 24, __, 96", options: ["a) 36", "b) 48", "c) 60", "d) 72"], correct: 1, img: null },
+        { q: "37. Si un coche viaja a 80 km/h, ¿cuántos kilómetros recorrerá en 2.5 horas?", options: ["a) 160 km", "b) 200 km", "c) 240 km", "d) 180 km"], correct: 1, img: null },
+        { q: "38. Identifique el sinónimo de la palabra 'EFÍMERO':", options: ["a) Eterno", "b) Pasajero", "c) Fuerte", "d) Brillante"], correct: 1, img: null },
+        { q: "39. Identifique el antónimo de la palabra 'GENEROSO':", options: ["a) Bondadoso", "b) Egoísta", "c) Amable", "d) Solidario"], correct: 1, img: null },
+        { q: "40. Complete la analogía: Perro es a Ladrar como Gato es a ___:", options: ["a) Volar", "b) Maullar", "c) Correr", "d) Comer"], correct: 1, img: null },
+        { q: "41. Premisa 1: Todos los mamíferos son de sangre caliente. Premisa 2: El delfín es un mamífero. Conclusión:", options: ["a) El delfín vive en el mar", "b) El delfín es de sangre caliente", "c) El delfín es un pez", "d) El delfín es un reptil"], correct: 1, img: null },
+        { q: "42. Complete la serie: 1, 4, 9, 16, 25, __", options: ["a) 30", "b) 36", "c) 42", "d) 49"], correct: 1, img: null },
+        { q: "43. Si un artículo cuesta $80 y se le aplica un incremento del 20%, ¿cuál es su nuevo precio?", options: ["a) $96", "b) $100", "c) $84", "d) $90"], correct: 0, img: null },
+        { q: "44. El perímetro de un cuadrado es 36 cm. ¿Cuál es la longitud de uno de sus lados?", options: ["a) 6 cm", "b) 9 cm", "c) 12 cm", "d) 18 cm"], correct: 1, img: null },
+        { q: "45. Identifique la palabra que NO pertenece al grupo:", options: ["a) Manzana", "b) Pera", "c) Zanahoria", "d) Plátano"], correct: 2, img: null }
+    ];
+
+    // Variables de Estado
+    let currentIndex = 0;
+    let score = 0;
+    let timeLeft = 45 * 60; // 45 minutos
+    let timerInterval;
+    let selectedOption = null;
+    let userAnswers = [];
+
+    // Elementos del DOM
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultsScreen = document.getElementById('results-screen');
+    const questionCounter = document.getElementById('question-counter');
+    const timeText = document.getElementById('time-text');
+    const timerDisplay = document.getElementById('timer-display');
+    const progressBar = document.getElementById('progress-bar');
+    const questionText = document.getElementById('question-text');
+    const imageContainer = document.getElementById('image-container');
+    const questionImage = document.getElementById('question-image');
+    const optionsList = document.getElementById('options-list');
+    const btnNext = document.getElementById('btn-next');
+
+    // Iniciar Examen
+    function startExam() {
+        welcomeScreen.style.display = 'none';
+        quizScreen.style.display = 'flex';
+        startTimer();
+        loadQuestion();
+    }
+
+    // Temporizador
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finishExam();
+            }
+        }, 1000);
+    }
+
+    function updateTimerUI() {
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        timeText.textContent = `${m}:${s}`;
+
+        if (timeLeft <= 300) { // Últimos 5 min
+            timerDisplay.classList.add('warning');
+        }
+    }
+
+    // Cargar Pregunta
+    function loadQuestion() {
+        selectedOption = null;
+        btnNext.disabled = true;
+        btnNext.innerHTML = 'Siguiente <i class="fas fa-chevron-right"></i>';
+        btnNext.classList.remove('finish');
+
+        const q = questions[currentIndex];
+        
+        // Actualizar Cabecera y Progreso
+        questionCounter.textContent = `Pregunta ${currentIndex + 1} de ${questions.length}`;
+        const progress = (currentIndex / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // Actualizar Pregunta e Imagen
+        questionText.textContent = q.q;
+        if (q.img) {
+            imageContainer.style.display = 'block';
+            questionImage.src = q.img;
+        } else {
+            imageContainer.style.display = 'none';
+        }
+
+        // Generar Opciones
+        optionsList.innerHTML = '';
+        q.options.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            div.innerHTML = `
+                <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                <div>${opt}</div>
+            `;
+            div.onclick = () => selectOption(index, div);
+            optionsList.appendChild(div);
+        });
+
+        // Si es la última pregunta, cambiar botón
+        if (currentIndex === questions.length - 1) {
+            btnNext.innerHTML = 'Finalizar Examen <i class="fas fa-flag-checkered"></i>';
+            btnNext.classList.add('finish');
+        }
+    }
+
+    // Seleccionar Opción
+    function selectOption(index, element) {
+        document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedOption = index;
+        btnNext.disabled = false;
+    }
+
+    // Siguiente Pregunta
+    function nextQuestion() {
+        // Guardar respuesta
+        userAnswers.push({
+            question: questions[currentIndex],
+            selected: selectedOption
+        });
+
+        // Verificar
+        if (selectedOption === questions[currentIndex].correct) {
+            score++;
+        }
+
+        currentIndex++;
+
+        if (currentIndex < questions.length) {
+            loadQuestion();
+        } else {
+            finishExam();
+        }
+    }
+
+    // Finalizar Examen
+    function finishExam() {
+        clearInterval(timerInterval);
+        quizScreen.style.display = 'none';
+        resultsScreen.style.display = 'flex';
+
+        // Calcular porcentaje para el círculo
+        const percentage = (score / questions.length) * 100;
+        
+        // Actualizar texto de puntaje
+        document.getElementById('score-text').innerHTML = `${score}<span>/${questions.length}</span>`;
+        
+        // Animar el círculo (CSS conic-gradient)
+        const circle = document.getElementById('score-circle');
+        circle.style.background = `conic-gradient(var(--primary) ${percentage}%, #E1E8ED ${percentage}%)`;
+
+        // Mensaje motivacional
+        const msgEl = document.getElementById('results-message');
+        if (percentage >= 80) {
+            msgEl.textContent = "¡Excelente! Tienes un nivel sobresaliente.";
+            msgEl.style.color = "var(--success)";
+        } else if (percentage >= 50) {
+            msgEl.textContent = "Buen trabajo, pero aún puedes mejorar.";
+            msgEl.style.color = "var(--warning)";
+        } else {
+            msgEl.textContent = "Necesitas repasar más. ¡No te rindas!";
+            msgEl.style.color = "var(--danger)";
+        }
+
+        // Generar Revisión
+        const reviewContainer = document.getElementById('review-section');
+        reviewContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: var(--text-main);">Revisión de Respuestas</h3>';
+        
+        userAnswers.forEach((ans, i) => {
+            const isCorrect = ans.selected === ans.question.correct;
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            
+            const userAnsText = ans.selected !== null ? ans.question.options[ans.selected] : 'No respondida';
+            const correctAnsText = ans.question.options[ans.question.correct];
+
+            div.innerHTML = `
+                <div class="review-q">${i + 1}. ${ans.question.q}</div>
+                <div class="review-ans ${isCorrect ? 'correct' : 'incorrect'}">
+                    <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                    <span><strong>Tu respuesta:</strong> ${userAnsText}</span>
+                </div>
+                ${!isCorrect ? `
+                <div class="review-ans" style="color: var(--success);">
+                    <i class="fas fa-info-circle"></i>
+                    <span><strong>Respuesta correcta:</strong> ${correctAnsText}</span>
+                </div>` : ''}
+            `;
+            reviewContainer.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
